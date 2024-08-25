@@ -1,0 +1,35 @@
+import cv2
+import numpy as np
+import streamlit as st
+
+def hex_to_rgb(hex_color):
+    """
+    Convertit une couleur hexadécimale en une valeur RGB.
+    """
+    hex_color = hex_color.lstrip('#')
+    rgb = [int(hex_color[i:i+2], 16) for i in (0, 2, 4)]
+    return tuple(rgb)
+
+st.title("Analyse de Plan")
+
+uploaded_file = st.file_uploader("Téléchargez une image", type=["png", "jpg", "jpeg"])
+
+if uploaded_file is not None:
+    # Lire l'image téléchargée
+    image = cv2.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), cv2.IMREAD_COLOR)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    st.image(image_rgb, channels="RGB")
+
+    # Choisir la couleur de référence en hexadécimal
+    color_reference_hex = st.color_picker("Choisissez la couleur de référence", "#0a0e1e")
+    color_reference_rgb = hex_to_rgb(color_reference_hex)
+    color_reference_hsv = cv2.cvtColor(np.uint8([[color_reference_rgb]]), cv2.COLOR_RGB2HSV)[0][0]
+
+    # Convertir l'image en HSV pour une meilleure segmentation des couleurs
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Afficher l'image traitée
+    st.image(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB), channels="RGB")
+
+    # Afficher la couleur de référence
+    st.write(f"Couleur de référence en HSV : {color_reference_hsv}")
